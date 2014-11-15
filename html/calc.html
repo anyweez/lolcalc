@@ -1,0 +1,94 @@
+<html>
+	<head>
+		<title>LoL Power Spikes</title>
+		
+        <link type="text/css" rel="stylesheet" href="../css/rickshaw.min.css" />
+        <!-- For annotation timeline styles -->
+        <link type="text/css" rel="stylesheet" href="../css/graph.css" />
+        <link type="text/css" rel="stylesheet" href="../css/jquery-ui.css" />
+		<script src="../js/jquery/jquery-2.1.1.min.js"></script>
+        <script src="../js/jquery/jquery-ui.min.js"></script>
+		<script src="../js/d3/d3.min.js"></script>
+		<script src="../js/d3/d3.layout.min.js"></script>
+		<script src="../js/rickshaw/rickshaw.min.js"></script>
+		<script src="../js/calc.js"></script>
+		<script src="../js/data.js"></script>
+		<script src="../js/testing.js"></script>
+      
+        <style>
+            #chart_container {
+                position: relative;
+                font-family: Arial, Helvetica, sans-serif;
+            }
+            #chart {
+                position: relative;
+                left: 30px;
+            }
+            
+            #debug {
+				margin: 5px 0 0 30px;
+			}
+          
+			#input_container {
+				margin: 15px 0 15px 0;
+			}
+			
+			input {
+				padding: 3px;
+			}
+          
+			table {
+				width: 40%;
+				margin: 0 auto;
+				text-align: left;
+			}
+			
+			.action-idle {
+				color: #bbb;
+			}
+			
+            #timeline {
+                margin-top: 10px;
+                left: 30px; 
+            }
+          
+            #y_axis {
+                position: absolute;
+                top: 0;
+                bottom: 0;
+                width: 30px;
+            }
+        </style>
+	</head>
+	<body>
+        
+		<h2 id="title">Power spikes</h2>
+        <div id="input_container">
+		  <label for="champion">Champion</label>
+		  <input type="text" name="champion" id="champion" />
+		  <select name="target" id="target">
+			<option value="ad-dps">AD DPS</option>
+			<option value="ad-burst">AD Burst</option>
+			<option value="ap-dps">AP DPS</option>
+			<option value="ap-burst">AP Burst</option>
+		  </select>
+          <label for="duration">Duration:</label>
+          <input type="text" name="duration" id="duration" value=2 size=3 />
+          <input type="button" onclick="prepare_simulation()" value="Simulate" />
+        </div>
+        <div id="chart_container">
+            <div id="y_axis"></div>
+            <div id="chart"></div>
+            <div id="timeline"></div>
+        </div>
+        
+		<h2>Performance</h2>
+        <div id="debug">
+			<div id="debug_y_axis"></div>
+            <div id="debug_chart"></div>
+            <div id="debug_timeline"></div>
+        </div>
+        
+      <div id="events"></div>
+	</body>
+</html>
