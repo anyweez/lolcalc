@@ -74,7 +74,7 @@
 		  </select>
           <label for="duration">Duration:</label>
           <input type="text" name="duration" id="duration" value=2 size=3 />
-          <input type="button" onclick="prepare_simulation()" value="Simulate" />
+          <input type="button" onclick="test_simulation()" value="Simulate" />
         </div>
         <div id="chart_container">
             <div id="y_axis"></div>
@@ -83,7 +83,8 @@
         </div>
         
 		<h2>Performance</h2>
-        <div id="debug">
+		<div id="debug"></div>
+        <div id="performance">
 			<div id="debug_y_axis"></div>
             <div id="debug_chart"></div>
             <div id="debug_timeline"></div>

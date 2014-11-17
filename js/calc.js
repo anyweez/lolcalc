@@ -6,7 +6,53 @@ function gold(player, minute) {
   return 200;
 }
 
-function buy(player_orig, event) {
+/**
+ * Returns the cost as well as the ID's of any items that should be
+ * removed in order to account for the cost.
+ */
+function get_quote(player, target_item) {
+	if (target_item == null) return [0, []];
+	
+	var item_ids = [];
+	var removals = [];
+	var has_subitem = false;
+	var cost = target_item.cost;
+	
+	// Build the list of ID's.
+	for (var i = 0; i < player.items.length; i++) {
+		item_ids.push( player.items[i].id );
+	}
+	
+	// Check whether any of the target items exist. If so, deduct their
+	// cost from the cost of the 
+	for (var i = 0; i < target_item.builds_from.length; i++) {
+		var item_index = item_ids.indexOf( target_item.builds_from[i] );
+		if (item_index > -1 ) {
+			has_subitem = true;
+			
+			removals.push( target_item.builds_from[i] );
+			// Subtract the cost of the item that was removed.
+			cost -= item_data[ target_item.builds_from[i] ].cost;
+			// Remove the ID from the list so that we don't double-count.
+			item_ids = item_ids.splice(item_index, 1)
+		}
+	}
+	
+	return {
+		cost: cost, 
+		removals: removals
+	};
+}
+
+/**
+ * Consumes and replaces items that the target_item builds_from, subtracts
+ * the cost, and returns an upgraded player.
+ */
+function upgrade(player, target_item) {
+	item.builds_from
+}
+
+function buy(player_orig, event, cost, removables) {
   // Deep copy the object so that player_orig isn't modified.
   var player = jQuery.extend(true, {}, player_orig);
   
@@ -14,11 +60,18 @@ function buy(player_orig, event) {
     player.items.push(event.buy_item);
 
     // Remove the gold for this item.
-    player.gold -= event.buy_item.cost;
+    player.gold -= cost;
     player.attack += event.buy_item.attack;
   }
-  
-//  event.attacker = jQuery.extend(true, {}, player_orig);
+/*
+  for (var i = 0; i < player.items.length; i++) {
+      var item_index = removables.indexOf(player.items[i].id);
+      // Remove the item since it was upgraded.
+	  if (item_index > -1) {
+		  player.items.splice(i, 1);
+	  }
+  }
+*/
   event.current_gold = player.gold;
   event.current_dps = player.attack;
   player.events.push(event);
@@ -42,7 +95,10 @@ function fitness(a, d) {
  * Simulates the power curve for a champion relative to another defending
  * champion.
  */
-function simulate(attacker, defender, minutes, duration, gold_model) {
+function simulate(attacker_orig, defender, minutes, duration, gold_model) {
+  // Copy the attacker so that we don't affect things in other branches.
+  var attacker = jQuery.extend(true, {}, attacker_orig);
+  
   sim_step_counter += 1;
   // Add income as the first step of the simulation.
   attacker.gold += gold_model(attacker, minutes);
@@ -62,19 +118,20 @@ function simulate(attacker, defender, minutes, duration, gold_model) {
     // is the same as staying, go ahead and buy (otherwise the solutions
     // of buying item X now and buying X later are equivalent, and in
     // practice the former is better).
-    var a = buy(attacker, {when: minutes, buy_item: null});
-    var sim = simulate(a, defender, minutes+1, duration, gold_model);
+    var a = buy(attacker, {when: minutes, buy_item: null}, 0, []);
+	var sim = simulate(a, defender, minutes+1, duration, gold_model);
     var best_event = {when: minutes, buy_item: null};
     var best_sim = sim;
     
     // Then evaluate the max fitness if I buy each of the available items.
     for (var i = 0; i < items.length; i++) {
+		var quote = get_quote(attacker, items[i]);
         // If the player can't afford the item, don't bother.
-        if (items[i].cost > attacker.gold) continue;
+        if (quote.cost > attacker.gold) continue;
 		// If the player's inventory is full then skip because they can't buy.
-		if (a.items.length >= 6) continue;
-      
-        a = buy(attacker, {when: minutes, buy_item: items[i]});
+		if (attacker.items.length >= 6) continue;
+	  
+        a = buy(attacker, {when: minutes, buy_item: items[i]}, quote.cost, quote.removables);
         sim = simulate(a, defender, minutes+1, duration, gold_model);
        
         // If this event leads to a higher fitness score then keep track.
@@ -94,8 +151,7 @@ $(document).ready(function() {
 //    var sim = prepare_simulation();
 
 	// Run a performance test.
-	benchmark(sim);
-	test_simulation(10);
+	test_simulation();
 });
 
 /**
@@ -104,57 +160,65 @@ $(document).ready(function() {
  * based on a simple brute-force breadth first search that should be
  * correct but has O(2^n runtime).
  */
-function test_simulation(num_minutes) {
+function test_simulation() {
+	$("#performance").html("<div id='debug_y_axis'></div> \
+		<div id='debug_chart'></div> \
+		<div id='debug_timeline'></div>");
+	
 	var comparative_set = {
 		sims: [],
 		num_steps: [],
 		timing: []
 	};
 	
+	var max_duration = parseInt( $("#duration").val() );
 	// Run twenty simulations with each duration from 1 => num_minutes
 	// in order to count the number of steps required, get the event log,
 	// and get an average runtime. Compare this against the ground truth
 	// data stored in testing.js.	
-	for (var i = 0; i < num_minutes; i++) {
+	for (var i = 0; i < max_duration; i++) {
 		$("#duration").val(i+1);
 		var total_time = 0;
 		
+		// Run twenty times so that we can get a reasonable average runtime.
 		for (var j = 0; j < 20; j++) {
 			comparative_set.sims[i] = prepare_simulation();
 			comparative_set.num_steps[i] = sim_step_counter;
 			total_time += new Date().getTime() - sim_start_time;
 		}
 		// Average runtime.
-		comparative_set.timing[i] = total_time / 100; 
+		comparative_set.timing[i] = total_time / 20; 
 	}
 	
 	// Test for correctness, not just performance.
-	var correct = verify_correctness(comparative_set, ground_truth, num_minutes);
+	var correct = verify_correctness(comparative_set, ground_truth, max_duration);
 	console.log("Correct? " + correct);
 	
 	// Configure and draw the graph.
+	// TODO: Graphs should not stack.
 	var graph = new Rickshaw.Graph( {
-		element: document.querySelector("#debug"), 
+		element: document.querySelector("#performance"), 
 	    width: 1850, 
 	    height: 400, 
+	    renderer: 'line',
 	    series: [{
 		   color: 'steelblue',
-	   	   data: format_benchmarks(comparative_set, num_minutes)
+	   	   data: format_benchmarks(ground_truth, max_duration)
 	    }, {
-		   color: 'green',
-		   data: format_benchmarks(ground_truth, num_minutes) 
+		   color: correct ? 'green' : 'red',
+		   data: format_benchmarks(comparative_set, max_duration) 
 		}]
 	});
   
     var hoverDetail = new Rickshaw.Graph.HoverDetail( {
 	  graph: graph,
       formatter: function(series, x, y) {
-        return "<b>Num steps @ " + x + "m:</b> " + y
+        return "<b>Num steps @ " + (x / 60) + "m:</b> " + y
       }
     } );
   
     var x_axis = new Rickshaw.Graph.Axis.Time( { graph: graph } );
-    
+	graph.renderer.unstack = true;
     graph.render();
 }
 
