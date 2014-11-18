@@ -93,7 +93,8 @@ func main() {
 func simulate(attacker structs.Champion, defender structs.Champion, current int, total int) structs.Simulation {
 	attacker.Gold += income(attacker, current)
 	
-	if (total - current < 0) || (len(attacker.Items) >= 6) {
+	// Base case
+	if total - current < 0 {
 		return structs.Simulation {
 			Attacker: attacker,
 			Fitness: fitness(attacker, defender),
