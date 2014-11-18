@@ -24,7 +24,7 @@ function get_quote(player, target_item) {
 	}
 	
 	// Check whether any of the target items exist. If so, deduct their
-	// cost from the cost of the 
+	// cost from the cost of the target_item.
 	for (var i = 0; i < target_item.builds_from.length; i++) {
 		var item_index = item_ids.indexOf( target_item.builds_from[i] );
 		if (item_index > -1 ) {
@@ -44,15 +44,7 @@ function get_quote(player, target_item) {
 	};
 }
 
-/**
- * Consumes and replaces items that the target_item builds_from, subtracts
- * the cost, and returns an upgraded player.
- */
-function upgrade(player, target_item) {
-	item.builds_from
-}
-
-function buy(player_orig, event, cost, removables) {
+function buy(player_orig, event, cost, removables, defender) {
   // Deep copy the object so that player_orig isn't modified.
   var player = jQuery.extend(true, {}, player_orig);
   
@@ -62,6 +54,8 @@ function buy(player_orig, event, cost, removables) {
     // Remove the gold for this item.
     player.gold -= cost;
     player.attack += event.buy_item.attack;
+    player.attacks_per_second += (player.attacks_per_second * event.buy_item.attack_speed);
+    player.critical_strike_pct += event.buy_item.crit;
   }
 /*
   for (var i = 0; i < player.items.length; i++) {
@@ -73,7 +67,7 @@ function buy(player_orig, event, cost, removables) {
   }
 */
   event.current_gold = player.gold;
-  event.current_dps = player.attack;
+  event.current_dps = Math.round( fitness(player, defender) );
   player.events.push(event);
   
   return player;
@@ -86,9 +80,12 @@ function buy(player_orig, event, cost, removables) {
  */
 function fitness(a, d) {
   // Calculate damage per attack
-  return a.attack - d.armor;
+  var damage_per_attack = a.attack * ( 1 - ((d.armor - a.armor_penetration) / (100 + d.armor)) );
+  // Add a critical strike multiplier. represent this with E(critical strike).
+  damage_per_attack += (a.critical_strike_pct * damage_per_attack);
   
   // Todo: multiply by number of attacks
+  return damage_per_attack * a.attacks_per_second;  
 }
 
 /**
@@ -118,7 +115,7 @@ function simulate(attacker_orig, defender, minutes, duration, gold_model) {
     // is the same as staying, go ahead and buy (otherwise the solutions
     // of buying item X now and buying X later are equivalent, and in
     // practice the former is better).
-    var a = buy(attacker, {when: minutes, buy_item: null}, 0, []);
+    var a = buy(attacker, {when: minutes, buy_item: null}, 0, [], defender);
 	var sim = simulate(a, defender, minutes+1, duration, gold_model);
     var best_event = {when: minutes, buy_item: null};
     var best_sim = sim;
@@ -131,7 +128,7 @@ function simulate(attacker_orig, defender, minutes, duration, gold_model) {
 		// If the player's inventory is full then skip because they can't buy.
 		if (attacker.items.length >= 6) continue;
 	  
-        a = buy(attacker, {when: minutes, buy_item: items[i]}, quote.cost, quote.removables);
+        a = buy(attacker, {when: minutes, buy_item: items[i]}, quote.cost, quote.removables, defender);
         sim = simulate(a, defender, minutes+1, duration, gold_model);
        
         // If this event leads to a higher fitness score then keep track.
@@ -192,10 +189,8 @@ function test_simulation() {
 	
 	// Test for correctness, not just performance.
 	var correct = verify_correctness(comparative_set, ground_truth, max_duration);
-	console.log("Correct? " + correct);
 	
 	// Configure and draw the graph.
-	// TODO: Graphs should not stack.
 	var graph = new Rickshaw.Graph( {
 		element: document.querySelector("#performance"), 
 	    width: 1850, 
@@ -233,7 +228,10 @@ function prepare_simulation() {
 
 	var attacker = {
 		gold: 0,
-		attack: 20,
+		attack: 30,
+		armor_penetration: 0,
+		attacks_per_second: 1.5,
+		critical_strike_pct: 0,
 		items: [],
 		events: []
 	};

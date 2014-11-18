@@ -35,7 +35,7 @@ var items = [
     attack_speed: 0,
     crit: 0,
     builds_from: []
-  }
+  },
 ]
 
 var item_data = {};
