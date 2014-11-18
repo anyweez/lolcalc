@@ -68,6 +68,7 @@ func main() {
 	fmt.Println("Simulator steps:", simulator_steps)
 	output, _ := json.Marshal(simulation)
 	ioutil.WriteFile("output/simulation.json", output, 0644)
+	log.Println("Output written to 'output/simulation.json'")
 }
 
 /**

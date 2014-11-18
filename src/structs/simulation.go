@@ -69,11 +69,11 @@ type PurchaseQuote struct {
 
 func (s* SimulatorEvent) String() string {
 	if s.EventType == NoEvent {
-		return fmt.Sprintf("Event [t=%d,g=%d,dps=%.1f]: do nothing, inv=%d", s.When, s.CurrentGold, s.CurrentDPS, s.InventorySize)
+		return fmt.Sprintf("Event [t=%d,g=%d,dps=%.1f]\t do nothing, inv=%d", s.When, s.CurrentGold, s.CurrentDPS, s.InventorySize)
 	} else if s.EventType == BuyEvent {
-		return fmt.Sprintf("Event [t=%d,g=%d,dps=%.1f]: Buy %s (%d gold), inv=%d", s.When, s.CurrentGold, s.CurrentDPS, s.TargetItem.Name, s.Quote.Cost, s.InventorySize)
+		return fmt.Sprintf("Event [t=%d,g=%d,dps=%.1f]\t Buy %s (%d gold), inv=%d", s.When, s.CurrentGold, s.CurrentDPS, s.TargetItem.Name, s.Quote.Cost, s.InventorySize)
 	} else if s.EventType == UpgradeEvent {
-		return fmt.Sprintf("Event [t=%d,g=%d,dps=%.1f]: Upgrade %s (%d gold), inv=%d", s.When, s.CurrentGold, s.CurrentDPS, s.TargetItem.Name, s.Quote.Cost, s.InventorySize)
+		return fmt.Sprintf("Event [t=%d,g=%d,dps=%.1f]\t Upgrade %s (%d gold), inv=%d", s.When, s.CurrentGold, s.CurrentDPS, s.TargetItem.Name, s.Quote.Cost, s.InventorySize)
 	}
 	
 	return "Error: unknown event type"
