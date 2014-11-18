@@ -24,6 +24,11 @@ type Champion struct {
 	Events				[]SimulatorEvent
 }
 
+type ChampionItemReader struct {
+	Version		string
+	Items		[]ChampionItem
+}
+
 type ChampionItem struct {
 	Id		int
 	Name	string
@@ -48,19 +53,27 @@ type SimulatorEvent struct {
 	// The minute where the event occurred
 	When		int
 	TargetItem	ChampionItem
+	Quote		PurchaseQuote
 	CurrentGold	int
 	CurrentDPS	float32
 	
 	InventorySize	int
 }
 
+type PurchaseQuote struct {
+	Cost	int
+	// Item ID's that should be removed when the item is purchased.
+	Removed	[]int
+}
+
+
 func (s* SimulatorEvent) String() string {
 	if s.EventType == NoEvent {
-		return fmt.Sprintf("Event [t=%d,g=%d]: do nothing, inv=%d", s.When, s.CurrentGold, s.InventorySize)
+		return fmt.Sprintf("Event [t=%d,g=%d,dps=%.1f]: do nothing, inv=%d", s.When, s.CurrentGold, s.CurrentDPS, s.InventorySize)
 	} else if s.EventType == BuyEvent {
-		return fmt.Sprintf("Event [t=%d,g=%d]: Buy %s (%d gold), inv=%d", s.When, s.CurrentGold, s.TargetItem.Name, s.TargetItem.Cost, s.InventorySize)
+		return fmt.Sprintf("Event [t=%d,g=%d,dps=%.1f]: Buy %s (%d gold), inv=%d", s.When, s.CurrentGold, s.CurrentDPS, s.TargetItem.Name, s.Quote.Cost, s.InventorySize)
 	} else if s.EventType == UpgradeEvent {
-		return fmt.Sprintf("Upgrade Event")
+		return fmt.Sprintf("Event [t=%d,g=%d,dps=%.1f]: Upgrade %s (%d gold), inv=%d", s.When, s.CurrentGold, s.CurrentDPS, s.TargetItem.Name, s.Quote.Cost, s.InventorySize)
 	}
 	
 	return "Error: unknown event type"
