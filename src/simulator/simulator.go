@@ -61,14 +61,10 @@ func main() {
 	log.Println(fmt.Sprintf("Running %d-minute simulation...", *DURATION)) 
 	simulation := simulate(attacker, defender, 1, *DURATION)
 	
-	// Print the events.
-	for _, event := range simulation.Attacker.Events {
-		fmt.Println(event.String())
-	}
 	fmt.Println("Simulator steps:", simulator_steps)
 	output, _ := json.Marshal(simulation)
-	ioutil.WriteFile("output/simulation.json", output, 0644)
-	log.Println("Output written to 'output/simulation.json'")
+	ioutil.WriteFile(fmt.Sprintf("output/simulation-%d.json", *DURATION), output, 0644)
+	log.Println(fmt.Sprintf("Output written to 'output/simulation-%d.json'", *DURATION))
 }
 
 /**
@@ -107,19 +103,20 @@ func simulate(attacker structs.Champion, defender structs.Champion, current int,
 		// go with nothing.
 		for _, item := range itemList {
 			quote := getQuote(attacker, item)
-
+			isUpgrade := quote.Cost != item.Cost
+			
 			// If this item costs more than the simulated user has, don't
 			// both exploring this option.
 			// If the user already has a full inventory then don't bother
 			// exploring new purchasing options.
-			if (attacker.Gold >= quote.Cost) && (len(attacker.Items) < 6)  {			
+			if (attacker.Gold >= quote.Cost) && (len(attacker.Items) < 6 || isUpgrade) {			
 				event := structs.SimulatorEvent{
 					When: current,
 					TargetItem: item,
 				}
 				
 				// Check to see if this is an upgrade or a direct buy.
-				if quote.Cost != item.Cost {
+				if isUpgrade {
 					event.EventType = structs.UpgradeEvent
 				} else {
 					event.EventType = structs.BuyEvent
@@ -127,11 +124,7 @@ func simulate(attacker structs.Champion, defender structs.Champion, current int,
 				
 				a = buy(attacker, defender, event, quote)
 				sim := simulate(a, defender, current+1, total)
-				
-//				if current == 15 {
-//					log.Println(quote.Cost, sim.Attacker.Attack)
-//				}
-						
+										
 				if sim.Fitness >= bestSim.Fitness {
 					bestSim = sim
 				}
@@ -167,6 +160,7 @@ func getQuote(a structs.Champion, item structs.ChampionItem) structs.PurchaseQuo
 		// you don't remove the same item twice (unless it's listed in the
 		// BuildsFrom list twice).
 		exists := false
+
 		for i, pi := range playerItems {
 			if pi == ti && !exists {
 				playerItems = append(playerItems[:i], playerItems[i+1:]...)
@@ -192,15 +186,19 @@ func getQuote(a structs.Champion, item structs.ChampionItem) structs.PurchaseQuo
  * into account the damage done by individual abilities.
  */
 func fitness(a structs.Champion, d structs.Champion) float32 {
-/*
 	// Calculate damage per attack
 	damagePerAttack := float32(a.Attack * ( 1 - ((d.Armor - a.ArmorPenetration) / (100 + d.Armor)) ));
 	// Add a critical strike multiplier. represent this with E(critical strike).
 	damagePerAttack += (a.CriticalStrikePct * damagePerAttack);
-  
-	return damagePerAttack * a.AttacksPerSecond;  
-	* */
-	return float32(a.Attack)
+
+	buyerAdvantage := float32(0.0)
+	for _, event := range a.Events {
+		if event.EventType > 0 {
+			buyerAdvantage += 0.0001
+		}
+	}
+	
+	return damagePerAttack * a.AttacksPerSecond + buyerAdvantage;  
 }
 
 /**

@@ -1,0 +1,37 @@
+{
+	"version": "XX.YY.ZZ",
+	"items": [{
+		"id": 1,
+		"name": "Bilgewater Cutlass",
+		"cost": 1400,
+		"attack": 25,
+		"attackspeed": 0,
+		"crit": 0,
+		"buildsfrom": [4]
+	}, {
+		"id": 2,
+		"name": "Atma's Impaler",
+		"cost": 2300,
+		"attack": 0,
+		"attackspeed": 0,
+		"crit": ".15",
+		"buildsfrom": []
+	}, {
+		"id": 3,
+		"name": "Blade of the Ruined King",
+		"cost": 3200,
+		"attack": 25,
+		"attackspeed": ".40",
+		"crit": 0,
+		"buildsfrom": []
+	}, {
+		"id": 4,
+		"name": "Small sword",
+		"cost": 350,
+		"attack": 10,
+		"attackspeed": 0,
+		"crit": 0,
+		"buildsfrom": []
+  }]
+}
+
