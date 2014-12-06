@@ -11,7 +11,7 @@ import (
  */
 func Dps(items []structs.ChampionItem) float64 {
 	dps := 0.0
-	
+
 	for _, item := range items {
 		dps += float64(item.Attack)
 	}
