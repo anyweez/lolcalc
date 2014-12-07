@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"fmt"
 	"flag"
+	"log"
 //	"math"
 	"math/big"
 	"runtime"
@@ -28,7 +29,12 @@ const INVENTORY_SIZE int = 6
  */
 func loadItems() []structs.ChampionItem {
 	// Read the items from an external data file.
-	data, _ := ioutil.ReadFile("data/items.json")
+	data, err := ioutil.ReadFile("data/items.json")
+	
+	if err != nil {
+		log.Fatal("Couldn't find input item file.")
+	}
+	
 	reader := structs.ChampionItemReader{}
 	json.Unmarshal(data, &reader)
 	
@@ -169,7 +175,7 @@ func main() {
 		Champion: structs.PlayerChampion{
 			Name: "Tristana",
 			AttackDamage: 0,
-			AttackSpeed: 1.05,
+			AttackSpeed: 1.0,
 			CriticalStrikePct: 0.0,
 		},
 		Enemy: structs.PlayerChampion{
@@ -185,6 +191,10 @@ func main() {
 	// Add a null item that represents "nothing" (empty space in inventory)
 	items = append(items, structs.ChampionItem{ Id: -1 })
 	items = append(items, loadedItems...)
+	
+	if len(items) == 1 {
+		log.Fatal("No items are available for the amount of gold provided.")
+	}
 	
 	queue := make(chan []int, 1000000)
 	best := make(chan structs.PermutationResult, *CORES)
@@ -248,10 +258,10 @@ func main() {
 	
 	if *BENCHMARK {
 		duration := float64(end - start) / 1000.0
-//		fmt.Println()
-//		fmt.Println("[BENCHMARKING]")
-//		fmt.Println( fmt.Sprintf("  time: %.1fs", duration) )
-//		fmt.Println( fmt.Sprintf("  rate: %.1f comparisons/s", *CORES, float64(count) / duration) )
+		fmt.Println()
+		fmt.Println("[BENCHMARKING]")
+		fmt.Println( fmt.Sprintf("  time: %.1fs", duration) )
+		fmt.Println( fmt.Sprintf("  rate: %.1f comparisons/s", *CORES, float64(count) / duration) )
 		fmt.Println( fmt.Sprintf("%.1f", float64(count) / duration) )
 	}
 }
