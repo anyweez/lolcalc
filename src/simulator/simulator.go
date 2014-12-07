@@ -35,12 +35,12 @@ func loadItems() []structs.ChampionItem {
 	return reader.Items
 }
 
-func compare(queue chan []int, initialConstraints structs.StageConstraints, items []structs.ChampionItem, output chan structs.PermutationResult) {
+func compare(queue chan []int, initialCriteria structs.StageCriteria, items []structs.ChampionItem, output chan structs.PermutationResult) {
 	defer wg.Done()
 	best := structs.PermutationResult{ Fitness: -1.0, Valid: false }
 
 	for combo := range queue {
-		constraints := initialConstraints
+		criteria := initialCriteria
 		result := structs.PermutationResult{
 			Valid: true,
 		}
@@ -56,9 +56,9 @@ func compare(queue chan []int, initialConstraints structs.StageConstraints, item
 			if items[itemId].Id >= 0 {
 				itemSet = append(itemSet, items[itemId])
 			
-				constraints.Gold -= items[itemId].Cost
+				criteria.Gold -= items[itemId].Cost
 		
-				if constraints.Gold < 0 {
+				if criteria.Gold < 0 {
 					result.Valid = false
 				}
 			}
@@ -66,7 +66,7 @@ func compare(queue chan []int, initialConstraints structs.StageConstraints, item
 	
 		// Run the fitness function on the item set.
 		if result.Valid {
-			result.Fitness = fitness.Dps(itemSet)
+			result.Fitness = fitness.Dps(itemSet, criteria)
 			// Load items that increase the size of the message now that
 			// they'll actually be used.
 			result.Items = itemSet
@@ -84,11 +84,11 @@ func compare(queue chan []int, initialConstraints structs.StageConstraints, item
  * Filter out items that cannot be chosen based on the constraints (cost
  * more than the available gold, for example.
  */
-func filter(items []structs.ChampionItem, constraints structs.StageConstraints) []structs.ChampionItem {
+func filter(items []structs.ChampionItem, criteria structs.StageCriteria) []structs.ChampionItem {
 	finished := make([]structs.ChampionItem, 0, len(items))
 	
 	for _, item := range items {
-		if item.Cost <= constraints.Gold {
+		if item.Cost <= criteria.Gold {
 			finished = append(finished, item)
 		}
 	}
@@ -163,13 +163,23 @@ func main() {
 	// Start time for benchmarking purposes
 	start := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Millisecond)
 
-	// Build the constraints object that's used to steer the simulation.
-	constraints := structs.StageConstraints{ 
+	// Build the criteria object that's used to steer the simulation.
+	criteria := structs.StageCriteria{ 
 		Gold: *GOLD, 
+		Champion: structs.PlayerChampion{
+			Name: "Tristana",
+			AttackDamage: 0,
+			AttackSpeed: 1.05,
+			CriticalStrikePct: 0.0,
+		},
+		Enemy: structs.PlayerChampion{
+			Name: "Draven",
+			Armor: 0,
+		},
 	}
 	
 	loadedItems := loadItems()
-	loadedItems = filter(loadedItems, constraints)
+	loadedItems = filter(loadedItems, criteria)
 	
 	items := make([]structs.ChampionItem,  0, len(loadedItems) + 1)
 	// Add a null item that represents "nothing" (empty space in inventory)
@@ -190,7 +200,7 @@ func main() {
 	
 	for i := 0; i < *CORES; i++ {
 		wg.Add(1)
-		go compare(queue, constraints, items, best)
+		go compare(queue, criteria, items, best)
 	}
 	
 	count := 0

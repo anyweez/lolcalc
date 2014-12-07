@@ -1,7 +1,7 @@
 {
     "items": [
         {
-            "attack": 20,
+            "attackdamage": 20,
             "attackspeed": 0,
             "cost": 1325,
             "crit": 0,
@@ -9,7 +9,7 @@
             "name": "Phage"
         },
         {
-            "attack": 0,
+            "attackdamage": 0,
             "attackspeed": 0.5,
             "cost": 2800,
             "crit": 0.3,
@@ -17,7 +17,7 @@
             "name": "Phantom Dancer"
         },
         {
-            "attack": 25,
+            "attackdamage": 25,
             "attackspeed": 0,
             "cost": 1900,
             "crit": 0.2,
@@ -25,7 +25,7 @@
             "name": "Executioner's Calling"
         },
         {
-            "attack": 0,
+            "attackdamage": 0,
             "attackspeed": 0.25,
             "cost": 1475,
             "crit": 0,
@@ -33,7 +33,7 @@
             "name": "Enchantment: Alacrity"
         },
         {
-            "attack": 30,
+            "attackdamage": 30,
             "attackspeed": 0,
             "cost": 2600,
             "crit": 0,
@@ -41,7 +41,7 @@
             "name": "Guinsoo's Rageblade"
         },
         {
-            "attack": 25,
+            "attackdamage": 25,
             "attackspeed": 0,
             "cost": 1337,
             "crit": 0,
@@ -49,7 +49,7 @@
             "name": "The Brutalizer"
         },
         {
-            "attack": 80,
+            "attackdamage": 80,
             "attackspeed": 0,
             "cost": 3700,
             "crit": 0,
@@ -57,7 +57,7 @@
             "name": "Mercurial Scimitar"
         },
         {
-            "attack": 40,
+            "attackdamage": 40,
             "attackspeed": 0,
             "cost": 2300,
             "crit": 0,
@@ -65,7 +65,7 @@
             "name": "Last Whisper"
         },
         {
-            "attack": 80,
+            "attackdamage": 80,
             "attackspeed": 0,
             "cost": 3800,
             "crit": 0.25,
@@ -73,7 +73,7 @@
             "name": "Infinity Edge"
         },
         {
-            "attack": 10,
+            "attackdamage": 10,
             "attackspeed": 0,
             "cost": 1400,
             "crit": 0,
@@ -81,7 +81,7 @@
             "name": "Sword of the Occult"
         },
         {
-            "attack": 30,
+            "attackdamage": 30,
             "attackspeed": 0,
             "cost": 2700,
             "crit": 0.15,
@@ -89,7 +89,7 @@
             "name": "Youmuu's Ghostblade"
         },
         {
-            "attack": 25,
+            "attackdamage": 25,
             "attackspeed": 0,
             "cost": 1400,
             "crit": 0,
@@ -97,7 +97,7 @@
             "name": "Bilgewater Cutlass"
         },
         {
-            "attack": 45,
+            "attackdamage": 45,
             "attackspeed": 0,
             "cost": 3400,
             "crit": 0,
@@ -105,7 +105,7 @@
             "name": "Hextech Gunblade"
         },
         {
-            "attack": 30,
+            "attackdamage": 30,
             "attackspeed": 0,
             "cost": 3300,
             "crit": 0,
@@ -113,7 +113,7 @@
             "name": "Frozen Mallet"
         },
         {
-            "attack": 0,
+            "attackdamage": 0,
             "attackspeed": 0,
             "cost": 730,
             "crit": 0.15,
@@ -121,7 +121,7 @@
             "name": "Cloak of Agility"
         },
         {
-            "attack": 0,
+            "attackdamage": 0,
             "attackspeed": 0.2,
             "cost": 1100,
             "crit": 0.1,
@@ -129,7 +129,7 @@
             "name": "Zeal"
         },
         {
-            "attack": 25,
+            "attackdamage": 25,
             "attackspeed": 0.4,
             "cost": 3200,
             "crit": 0,
@@ -137,7 +137,7 @@
             "name": "Blade of the Ruined King"
         },
         {
-            "attack": 60,
+            "attackdamage": 60,
             "attackspeed": 0,
             "cost": 3200,
             "crit": 0,
@@ -145,7 +145,7 @@
             "name": "Maw of Malmortius"
         },
         {
-            "attack": 25,
+            "attackdamage": 25,
             "attackspeed": 0,
             "cost": 1450,
             "crit": 0,
@@ -153,7 +153,7 @@
             "name": "Hexdrinker"
         },
         {
-            "attack": 12,
+            "attackdamage": 12,
             "attackspeed": 0.3,
             "cost": 1475,
             "crit": 0,
@@ -161,7 +161,7 @@
             "name": "Wriggle's Lantern"
         },
         {
-            "attack": 80,
+            "attackdamage": 80,
             "attackspeed": 0,
             "cost": 3200,
             "crit": 0,
@@ -169,7 +169,7 @@
             "name": "Essence Reaver"
         },
         {
-            "attack": 0,
+            "attackdamage": 0,
             "attackspeed": 0,
             "cost": 800,
             "crit": 0.1,
@@ -177,7 +177,7 @@
             "name": "Avarice Blade"
         },
         {
-            "attack": 0,
+            "attackdamage": 0,
             "attackspeed": 0.5,
             "cost": 2600,
             "crit": 0,
@@ -185,7 +185,7 @@
             "name": "Wit's End"
         },
         {
-            "attack": 0,
+            "attackdamage": 0,
             "attackspeed": 0.25,
             "cost": 1600,
             "crit": 0,
@@ -193,7 +193,7 @@
             "name": "Enchantment: Captain"
         },
         {
-            "attack": 0,
+            "attackdamage": 0,
             "attackspeed": 0.25,
             "cost": 1475,
             "crit": 0,
@@ -201,7 +201,7 @@
             "name": "Enchantment: Furor"
         },
         {
-            "attack": 0,
+            "attackdamage": 0,
             "attackspeed": 0.25,
             "cost": 1475,
             "crit": 0,
@@ -209,7 +209,7 @@
             "name": "Enchantment: Distortion"
         },
         {
-            "attack": 0,
+            "attackdamage": 0,
             "attackspeed": 0.25,
             "cost": 1475,
             "crit": 0,
@@ -217,7 +217,7 @@
             "name": "Enchantment: Homeguard"
         },
         {
-            "attack": 0,
+            "attackdamage": 0,
             "attackspeed": 0,
             "cost": 2250,
             "crit": 0.15,
@@ -225,7 +225,7 @@
             "name": "Atma's Impaler"
         },
         {
-            "attack": 25,
+            "attackdamage": 25,
             "attackspeed": 0,
             "cost": 2200,
             "crit": 0,
@@ -233,7 +233,7 @@
             "name": "Manamune"
         },
         {
-            "attack": 0,
+            "attackdamage": 0,
             "attackspeed": 0.25,
             "cost": 1000,
             "crit": 0,
@@ -241,7 +241,7 @@
             "name": "Berserker's Greaves"
         },
         {
-            "attack": 50,
+            "attackdamage": 50,
             "attackspeed": 0,
             "cost": 1550,
             "crit": 0,
@@ -249,7 +249,7 @@
             "name": "B. F. Sword"
         },
         {
-            "attack": 0,
+            "attackdamage": 0,
             "attackspeed": 0.7,
             "cost": 2400,
             "crit": 0,
@@ -257,7 +257,7 @@
             "name": "Runaan's Hurricane (Ranged Only)"
         },
         {
-            "attack": 0,
+            "attackdamage": 0,
             "attackspeed": 0.4,
             "cost": 2500,
             "crit": 0.2,
@@ -265,7 +265,7 @@
             "name": "Statikk Shiv"
         },
         {
-            "attack": 10,
+            "attackdamage": 10,
             "attackspeed": 0,
             "cost": 360,
             "crit": 0,
@@ -273,7 +273,7 @@
             "name": "Long Sword"
         },
         {
-            "attack": 25,
+            "attackdamage": 25,
             "attackspeed": 0,
             "cost": 875,
             "crit": 0,
@@ -281,7 +281,7 @@
             "name": "Pickaxe"
         },
         {
-            "attack": 50,
+            "attackdamage": 50,
             "attackspeed": 0,
             "cost": 3000,
             "crit": 0,
@@ -289,7 +289,7 @@
             "name": "The Black Cleaver"
         },
         {
-            "attack": 80,
+            "attackdamage": 80,
             "attackspeed": 0,
             "cost": 3500,
             "crit": 0,
@@ -297,7 +297,7 @@
             "name": "The Bloodthirster"
         },
         {
-            "attack": 75,
+            "attackdamage": 75,
             "attackspeed": 0,
             "cost": 3300,
             "crit": 0,
@@ -305,7 +305,7 @@
             "name": "Ravenous Hydra (Melee Only)"
         },
         {
-            "attack": 40,
+            "attackdamage": 40,
             "attackspeed": 0,
             "cost": 1900,
             "crit": 0,
@@ -313,7 +313,7 @@
             "name": "Tiamat (Melee Only)"
         },
         {
-            "attack": 30,
+            "attackdamage": 30,
             "attackspeed": 0.3,
             "cost": 3703,
             "crit": 0.1,
@@ -321,7 +321,7 @@
             "name": "Trinity Force"
         },
         {
-            "attack": 25,
+            "attackdamage": 25,
             "attackspeed": 0.5,
             "cost": 2850,
             "crit": 0,
@@ -329,7 +329,7 @@
             "name": "Zephyr"
         },
         {
-            "attack": 30,
+            "attackdamage": 30,
             "attackspeed": 0,
             "cost": 2075,
             "crit": 0,
@@ -337,7 +337,7 @@
             "name": "Spirit of the Elder Lizard"
         },
         {
-            "attack": 10,
+            "attackdamage": 10,
             "attackspeed": 0,
             "cost": 800,
             "crit": 0,
@@ -345,7 +345,7 @@
             "name": "Vampiric Scepter"
         },
         {
-            "attack": 7,
+            "attackdamage": 7,
             "attackspeed": 0,
             "cost": 440,
             "crit": 0,
@@ -353,7 +353,7 @@
             "name": "Doran's Blade"
         },
         {
-            "attack": 0,
+            "attackdamage": 0,
             "attackspeed": 0.15,
             "cost": 450,
             "crit": 0,
@@ -361,7 +361,7 @@
             "name": "Madred's Razors"
         },
         {
-            "attack": 0,
+            "attackdamage": 0,
             "attackspeed": 0.4,
             "cost": 1250,
             "crit": 0,
@@ -369,7 +369,7 @@
             "name": "Stinger"
         },
         {
-            "attack": 0,
+            "attackdamage": 0,
             "attackspeed": 0,
             "cost": 400,
             "crit": 0.08,
@@ -377,7 +377,7 @@
             "name": "Brawler's Gloves"
         },
         {
-            "attack": 0,
+            "attackdamage": 0,
             "attackspeed": 0.3,
             "cost": 900,
             "crit": 0,
@@ -385,7 +385,7 @@
             "name": "Recurve Bow"
         },
         {
-            "attack": 0,
+            "attackdamage": 0,
             "attackspeed": 0.15,
             "cost": 450,
             "crit": 0,
@@ -393,7 +393,7 @@
             "name": "Dagger"
         },
         {
-            "attack": 0,
+            "attackdamage": 0,
             "attackspeed": 0.5,
             "cost": 2920,
             "crit": 0,

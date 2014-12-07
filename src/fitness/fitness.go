@@ -8,33 +8,42 @@ import (
  * Computes the damage per second generated from auto-attacks. This
  * is only a partial formula; it accounts for attack damage, critical
  * strike percentages, and attack speed.
+ * 
+ * Formula from http://forums.na.leagueoflegends.com/board/showthread.php?t=3871747.
  */
-func Dps(items []structs.ChampionItem) float64 {
-	dps := 0.0
+func Dps(items []structs.ChampionItem, criteria structs.StageCriteria) float64 {
+	champion := criteria.Champion 
+	enemy := criteria.Enemy
+	
+	for _, item := range items {
+		champion.AttackDamage += item.AttackDamage
+		champion.AttackSpeed += item.AttackSpeed
+		champion.CriticalStrikePct += item.CriticalStrikePct
+	}
 
-	for _, item := range items {
-		dps += float64(item.Attack)
-	}
-	
-	critPct := 0.0
-	for _, item := range items {
-		critPct += item.CriticalStrikePct
-	}
-	
 	// Critical strike maxes out at 100%.
 	// http://leagueoflegends.wikia.com/wiki/Critical_strike
-	if critPct > 1 {
-		critPct = 1
+	if champion.CriticalStrikePct > 1 {
+		champion.CriticalStrikePct = 1
 	}
-	
-	// A critical strike does double damage. Increase DPS by the expected
-	// value given a certain critical strike percentage.
-	dps += (dps * critPct)
 
-	// Number of attacks per second.
-	for _, item := range items {
-		dps *= 1 + item.AttackSpeed
-	}
+	// The big ass formula. See above link for reference and structs/simulation.go
+	// for documentation on each field.
+	dps := champion.AttackSpeed / (1 + champion.AttackSpeedDelay) *
+			(1 + champion.BonusAttackSpeed) *
+			// Calculate expected damage given crits
+			(
+				// Calculate damage of non-crit * P(1 - crit).
+				(champion.AttackDamage + champion.BonusAttackDamage) *
+				(1 - champion.CriticalStrikePct) +
+				// Calculate damage of crit * P(crit).
+				(champion.AttackDamage + champion.BonusAttackDamage) *
+				champion.CriticalStrikePct * champion.CriticalStrikeModifier) *
+			(
+				1 -
+				// Armor drop-off formula 
+				(enemy.Armor * (1 - champion.ArmorPenetrationPct) - champion.ArmorPenetration) /
+				(100 + (enemy.Armor * (1 - champion.ArmorPenetrationPct) - champion.ArmorPenetration)))
 	
 	return dps
 }

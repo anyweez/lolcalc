@@ -8,7 +8,7 @@ import pprint
 
 def is_valid(original, parsed):
 	valid = parsed['cost'] > 0
-	valid = valid and (parsed['attack'] > 0 or parsed['attackspeed'] > 0 or parsed['crit'] > 0)
+	valid = valid and (parsed['attackdamage'] > 0 or parsed['attackspeed'] > 0 or parsed['crit'] > 0)
 	valid = valid and (not original.has_key('inStore'))
 	valid = valid and (not original.has_key('maps') or not original['maps'].has_key("1"))
 	
@@ -31,7 +31,7 @@ for item_id, item in items['data'].iteritems():
 		"id": int(item_id),
 		"name": item['name'],
 		"cost": int(item['gold']['total']),
-		"attack": int(item['stats']['FlatPhysicalDamageMod']) if 'FlatPhysicalDamageMod' in item['stats'] else 0,
+		"attackdamage": int(item['stats']['FlatPhysicalDamageMod']) if 'FlatPhysicalDamageMod' in item['stats'] else 0,
 		"attackspeed": float(item['stats']['PercentAttackSpeedMod']) if 'PercentAttackSpeedMod' in item['stats'] else 0,
 		"crit": float(item['stats']['FlatCritChanceMod']) if 'FlatCritChanceMod' in item['stats'] else 0,
 #		"buildsfrom": []
