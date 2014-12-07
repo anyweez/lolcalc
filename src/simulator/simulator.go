@@ -1,22 +1,27 @@
 package main
 
 import (
+//	"bufio"
 	structs "structs"
 	fitness "fitness"
 	"encoding/json"
 	"io/ioutil"
 	"fmt"
 	"flag"
-	"math"
+//	"math"
+	"math/big"
 	"runtime"
 	"sync"
 	"time"
+//	"os"
 )
 
 var wg sync.WaitGroup
 var GOLD = flag.Int("gold", 500, "The amount of gold that the simulation is limited to spending.")
 var CORES = flag.Int("cores", 1, "The number of cores to use for the simulation.")
 var BENCHMARK = flag.Bool("benchmark", false, "Whether to make this a benchmark run or a full run.")
+
+const INVENTORY_SIZE int = 6
 
 /**
  * Read items from an external data file and generate a list of items.
@@ -101,87 +106,117 @@ func outputResult(result structs.PermutationResult) {
 	}	
 }
 
+func comb(max_val int, comb_length int, output chan []int) {
+    s := make([]int, comb_length)
+    last := comb_length - 1
+    
+    var rc func(int, int)
+    rc = func(current, next int) {
+        for j := next; j < max_val; j++ {
+            s[current] = j
+            if current == last {
+				o := make([]int, len(s))
+				copy(o, s)
+                output <- o
+            } else {
+                rc(current+1, j)
+            }
+        }
+    }
+    
+    rc(0, 0)
+    close(output)
+}
+
+func getCombinations(max_val int, max_len int) chan []int {
+	c := make(chan []int, 1000000)	
+	go comb(max_val, max_len, c)
+	
+	return c
+}
+
+func fact(n int64) *big.Int {
+	val := big.NewInt(n)
+	
+	for i := n-1; i > 0; i-- {
+		val.Mul(val, big.NewInt(i))
+	}
+	
+	return val
+}
+
+func getNumCombinations(num_items int, set_size int) *big.Int {
+	// Combinations without replacement
+	// http://rosettacode.org/wiki/Combinations
+	numer := fact(int64(num_items + INVENTORY_SIZE - 1))
+	denom1 := fact(int64(num_items - 1))
+	denom2 := fact(int64(INVENTORY_SIZE))
+	denom := denom1.Mul(denom1, denom2)
+
+	return numer.Div(numer, denom)
+}
+
 func main() {
 	flag.Parse()
 	runtime.GOMAXPROCS(*CORES)
-
+	
 	// Start time for benchmarking purposes
 	start := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Millisecond)
-	numIterations := 10000000
 
 	// Build the constraints object that's used to steer the simulation.
 	constraints := structs.StageConstraints{ 
 		Gold: *GOLD, 
 	}
 	
-	items := loadItems()
-	items = filter(items, constraints)
+	loadedItems := loadItems()
+	loadedItems = filter(loadedItems, constraints)
+	
+	items := make([]structs.ChampionItem,  0, len(loadedItems) + 1)
 	// Add a null item that represents "nothing" (empty space in inventory)
 	items = append(items, structs.ChampionItem{ Id: -1 })
+	items = append(items, loadedItems...)
 	
-	queue := make(chan []int)
+	queue := make(chan []int, 1000000)
 	best := make(chan structs.PermutationResult, *CORES)
+
+	// Output available item list if we're not benchmarking.
+	if !*BENCHMARK {
+		fmt.Println("Available items:")
+		for i := 1; i < len(items); i++ {
+			fmt.Println( fmt.Sprintf("  %d: %s", i, items[i].Name) )
+		}
+		fmt.Println()
+	}
 	
 	for i := 0; i < *CORES; i++ {
 		wg.Add(1)
 		go compare(queue, constraints, items, best)
 	}
 	
-	// For each permutation, fork a goroutine to examine viability and
-	// and pass the findings to the centralized joiner. There can be up
-	// to six items in a user's inventory so we should check out
 	count := 0
-	total := uint(math.Pow(float64(len(items)), float64(6)))
-
-	// TODO: this is currently generating too many combinations because
-	// [1, 0, 0, 0, 0, 0] == [0, 1, 0, 0, 0, 0]. I need to compute
-	// combinations instead of permutations.
-	for a := 0; a < len(items); a++ {
-		for b := 0; b < len(items); b++ {
-			for c := 0; c < len(items); c++ {
-				for d := 0; d < len(items); d++ {
-					for e := 0; e < len(items); e++ {
-						for f := 0; f < len(items); f++ {			
-							set := make([]int, 0, 6)
-							
-							// Add items if they're supposed to be added.
-							if items[a].Id >= 0 {
-								set = append(set, a)
-							}
-							if items[b].Id >= 0 {
-								set = append(set, b)
-							}
-							if items[c].Id >= 0 {
-								set = append(set, c)
-							}
-							if items[d].Id >= 0 {
-								set = append(set, d)
-							}
-							if items[e].Id >= 0 {
-								set = append(set, e)
-							}
-							if items[f].Id >= 0 {
-								set = append(set, f)
-							}
-							
-							// Go time!
-							queue <- set							
-							count += 1
-							
-							if *BENCHMARK && count == numIterations {
-								break
-							}
-							
-							if count % 1000 == 0 {
-								fmt.Print( fmt.Sprintf("[%.1f%%] Running...\r", 100 * (float64(count) / float64(total))) )				
-							}
-						}
-					}
-				}
+	// Formula for # of combinations without replacement
+	total := getNumCombinations(len(items), INVENTORY_SIZE)
+	
+	// Generate combinations with replacement.	
+	for val := range getCombinations(len(items), INVENTORY_SIZE) {
+		// Zeros will only appear at the beginning of a list based on the
+		// way the combinations are generated. Move through the list until
+		// you find a non-zero and send that slice into the queue.
+		for i := 0; i < len(val); i++ {
+			if val[i] != 0 {
+				queue <- val[i:]
 			}
-			
+		}
+		
+		count += 1
+		if count % 2000 == 0 && !*BENCHMARK {
+			fmt.Print( fmt.Sprintf("[%.1f%%] Running...\r", 100 * (float64(count) / float64(total.Int64()))) )				
 		}
 	}
+	if !*BENCHMARK {
+		fmt.Println( fmt.Sprintf("[%.1f%%] Complete", 100 * (float64(count) / float64(total.Int64()))) )				
+	}
+
 	close(queue)
 	wg.Wait()
 	
@@ -196,15 +231,17 @@ func main() {
 		}
 	}
 	
-	outputResult(winner)
+	if !*BENCHMARK {
+		outputResult(winner)
+	}
 	end := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Millisecond)
 	
 	if *BENCHMARK {
 		duration := float64(end - start) / 1000.0
-		fmt.Println()
-		fmt.Println("[BENCHMARKING]")
-		fmt.Println( fmt.Sprintf("  time: %.1fs", duration) )
-		fmt.Println( fmt.Sprintf("  rate: %.1f comparisons/s", float64(count) / duration) )
+//		fmt.Println()
+//		fmt.Println("[BENCHMARKING]")
+//		fmt.Println( fmt.Sprintf("  time: %.1fs", duration) )
+//		fmt.Println( fmt.Sprintf("  rate: %.1f comparisons/s", *CORES, float64(count) / duration) )
+		fmt.Println( fmt.Sprintf("%.1f", float64(count) / duration) )
 	}
-
 }
