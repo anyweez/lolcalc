@@ -11,7 +11,7 @@ import (
  * 
  * Formula from http://forums.na.leagueoflegends.com/board/showthread.php?t=3871747.
  */
-func Dps(items []structs.ChampionItem, criteria structs.StageCriteria) float64 {
+func Dps(items []structs.ChampionItem, criteria structs.StageCriteria) (float64, structs.PlayerChampion) {
 	champion := criteria.Champion 
 	enemy := criteria.Enemy
 	
@@ -45,5 +45,5 @@ func Dps(items []structs.ChampionItem, criteria structs.StageCriteria) float64 {
 				(enemy.Armor * (1 - champion.ArmorPenetrationPct) - champion.ArmorPenetration) /
 				(100 + (enemy.Armor * (1 - champion.ArmorPenetrationPct) - champion.ArmorPenetration)))
 	
-	return dps
+	return dps, champion
 }

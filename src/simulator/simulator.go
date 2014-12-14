@@ -1,7 +1,6 @@
 package main
 
 import (
-//	"bufio"
 	structs "structs"
 	fitness "fitness"
 	"encoding/json"
@@ -9,12 +8,11 @@ import (
 	"fmt"
 	"flag"
 	"log"
-//	"math"
+	"lookup"
 	"math/big"
 	"runtime"
 	"sync"
 	"time"
-//	"os"
 )
 
 var wg sync.WaitGroup
@@ -39,6 +37,20 @@ func loadItems() []structs.ChampionItem {
 	json.Unmarshal(data, &reader)
 	
 	return reader.Items
+}
+
+func loadChamps() []structs.ChampionDefinition {
+	// Read the items from an external data file.
+	data, err := ioutil.ReadFile("data/champions.json")
+	
+	if err != nil {
+		log.Fatal("Couldn't find input champion file.")
+	}
+	
+	reader := structs.PlayerChampionReader{}
+	json.Unmarshal(data, &reader)
+	
+	return reader.Champions
 }
 
 func compare(queue chan []int, initialCriteria structs.StageCriteria, items []structs.ChampionItem, output chan structs.PermutationResult) {
@@ -72,10 +84,13 @@ func compare(queue chan []int, initialCriteria structs.StageCriteria, items []st
 	
 		// Run the fitness function on the item set.
 		if result.Valid {
-			result.Fitness = fitness.Dps(itemSet, criteria)
+			champ := structs.PlayerChampion{}
+			result.Fitness, champ = fitness.Dps(itemSet, criteria)
 			// Load items that increase the size of the message now that
 			// they'll actually be used.
 			result.Items = itemSet
+			result.ChampWItems = champ
+			result.ChampNoItems = initialCriteria.Champion
 		
 			if result.Fitness > best.Fitness {
 				best = result
@@ -169,99 +184,103 @@ func main() {
 	// Start time for benchmarking purposes
 	start := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Millisecond)
 
-	// Build the criteria object that's used to steer the simulation.
-	criteria := structs.StageCriteria{ 
-		Gold: *GOLD, 
-		Champion: structs.PlayerChampion{
-			Name: "Tristana",
-			AttackDamage: 0,
-			AttackSpeed: 1.0,
-			CriticalStrikePct: 0.0,
-		},
-		Enemy: structs.PlayerChampion{
-			Name: "Draven",
-			Armor: 0,
-		},
-	}
-	
-	loadedItems := loadItems()
-	loadedItems = filter(loadedItems, criteria)
-	
-	items := make([]structs.ChampionItem,  0, len(loadedItems) + 1)
-	// Add a null item that represents "nothing" (empty space in inventory)
-	items = append(items, structs.ChampionItem{ Id: -1 })
-	items = append(items, loadedItems...)
-	
-	if len(items) == 1 {
-		log.Fatal("No items are available for the amount of gold provided.")
-	}
-	
-	queue := make(chan []int, 1000000)
-	best := make(chan structs.PermutationResult, *CORES)
+	loadedItems := loadItems()	
+	loadedChampDefs := loadChamps()
 
-	// Output available item list if we're not benchmarking.
-	if !*BENCHMARK {
-		fmt.Println("Available items:")
-		for i := 1; i < len(items); i++ {
-			fmt.Println( fmt.Sprintf("  %d: %s", i, items[i].Name) )
+	// Run the full simulation for each champion.
+	for _, champ := range loadedChampDefs {
+		// Output status.
+		fmt.Print(fmt.Sprintf("[Simulation: %s] Starting...\r", champ.Name))
+		
+		// Create a simulation configuration using the current champion as
+		// the attacker.
+		criteria := structs.StageCriteria{ 
+			Gold: *GOLD, 
+			Champion: structs.Summon(champ, 1),
+			Enemy: structs.PlayerChampion{
+				Name: "Draven",
+				Armor: 0,
+			},
 		}
-		fmt.Println()
-	}
+
+		// Filter down to the items that can be used by this champion.
+		usableItems := filter(loadedItems, criteria)
+		
+		if len(usableItems) == 0 {
+			log.Fatal("No items are available for the amount of gold provided.")
+		}
+		
+		items := make([]structs.ChampionItem,  0, len(usableItems) + 1)
+		// Add a null item that represents "nothing" (empty space in inventory)
+		items = append(items, structs.ChampionItem{ Id: -1 })
+		items = append(items, usableItems...)
 	
-	for i := 0; i < *CORES; i++ {
-		wg.Add(1)
-		go compare(queue, criteria, items, best)
-	}
+		queue := make(chan []int, 1000000)
+		best := make(chan structs.PermutationResult, *CORES)
 	
-	count := 0
-	// Formula for # of combinations without replacement
-	total := getNumCombinations(len(items), INVENTORY_SIZE)
+		// Kick off some goroutines so that we can parallelize the
+		// comparisons.
+		for i := 0; i < *CORES; i++ {
+			wg.Add(1)
+			go compare(queue, criteria, items, best)
+		}
 	
-	// Generate combinations with replacement.	
-	for val := range getCombinations(len(items), INVENTORY_SIZE) {
-		// Zeros will only appear at the beginning of a list based on the
-		// way the combinations are generated. Move through the list until
-		// you find a non-zero and send that slice into the queue.
-		for i := 0; i < len(val); i++ {
-			if val[i] != 0 {
-				queue <- val[i:]
+		count := 0
+		// Formula for # of combinations without replacement
+		total := getNumCombinations(len(items), INVENTORY_SIZE)
+	
+		// Generate combinations with replacement.	
+		for val := range getCombinations(len(items), INVENTORY_SIZE) {
+			// Zeros will only appear at the beginning of a list based on the
+			// way the combinations are generated. Move through the list until
+			// you find a non-zero and send that slice into the queue.
+			for i := 0; i < len(val); i++ {
+				if val[i] != 0 {
+					queue <- val[i:]
+				}
+			}
+		
+			count += 1
+			if count % 2000 == 0 && !*BENCHMARK {
+				pct := 100 * (float64(count) / float64(total.Int64()))
+				fmt.Print( fmt.Sprintf("[Simulation: %s] %.1f%% complete...\r", champ.Name, pct) )
 			}
 		}
-		
-		count += 1
-		if count % 2000 == 0 && !*BENCHMARK {
-			fmt.Print( fmt.Sprintf("[%.1f%%] Running...\r", 100 * (float64(count) / float64(total.Int64()))) )				
-		}
-	}
-	if !*BENCHMARK {
-		fmt.Println( fmt.Sprintf("[%.1f%%] Complete", 100 * (float64(count) / float64(total.Int64()))) )				
-	}
 
-	close(queue)
-	wg.Wait()
+		close(queue)
+		wg.Wait()
 	
-	// Retrieve the top result from each comparer and find the global best.
-	// Then output that result.
-	winner := structs.PermutationResult{ Fitness: -1.0, Valid: false }
-	for i := 0; i < *CORES; i++ {
-		result := <- best
+		// Retrieve the top result from each comparer and find the global best.
+		// Then output that result.
+		winner := structs.PermutationResult{ Fitness: -1.0, Valid: false }
+		for i := 0; i < *CORES; i++ {
+			result := <- best
 		
-		if result.Fitness > winner.Fitness {
-			winner = result
+			if result.Fitness > winner.Fitness {
+				winner = result
+			}
 		}
-	}
-	
-	if !*BENCHMARK {
-		outputResult(winner)
-	}
-	end := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Millisecond)
-	
-	if *BENCHMARK {
-		duration := float64(end - start) / 1000.0
-		fmt.Println()
-		fmt.Println("[BENCHMARKING]")
-		fmt.Println( fmt.Sprintf("  time: %.1fs", duration) )
-		fmt.Println( fmt.Sprintf("  rate: %.1f comparisons/s", *CORES, float64(count) / duration) )
-		fmt.Println( fmt.Sprintf("%.1f", float64(count) / duration) )
-	}
+
+		end := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Millisecond)
+		
+		// If this is a real run, print output status and cache the result.
+		if !*BENCHMARK {
+			// Get the unique key used to store the results of this simulation.
+			key := lookup.GetKey(criteria)
+			data, _ := json.Marshal(winner)
+			// Store the data in a lookup server, which can be used for
+			// retrieval by frontends.
+			lookup.Put(key, string(data))
+			fmt.Println( fmt.Sprintf("[Simulation: %s] Complete!                 ", champ.Name) )
+		// Otherwise, print out benchmark statistics.
+		} else {
+			duration := float64(end - start) / 1000.0
+			fmt.Println()
+			fmt.Println("[BENCHMARKING]")
+			fmt.Println( fmt.Sprintf("  time: %.1fs", duration) )
+			fmt.Println( fmt.Sprintf("  rate: %.1f comparisons/s", *CORES, float64(count) / duration) )
+			fmt.Println( fmt.Sprintf("%.1f", float64(count) / duration) )
+		}
+		
+	} // End champion loop
 }
