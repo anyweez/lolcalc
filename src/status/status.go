@@ -17,12 +17,14 @@ func main() {
 	
 	champs := load.Champs(*DATA_LOCATION + "/champions.json")
 	
-	for _, champ := range champs {
+	// Run through all gold values.
+	for gold := *MIN_GOLD; gold <= *MAX_GOLD; gold += 100 {
 		found := 0.0
 		total := 0.0
+
+		// Iterate through all champs within a specific gold value.
+		for _, champ := range champs {
 		
-		// Run through all gold values.
-		for gold := *MIN_GOLD; gold <= *MAX_GOLD; gold += 100 {
 			sc := structs.StageCriteria{
 				Gold: gold,
 				Champion: structs.Summon(champ, 1),
@@ -35,6 +37,6 @@ func main() {
 			}
 		}
 		
-		fmt.Println( fmt.Sprintf("%s:\t %.1f%%", champ.Name, (found / total) * 100) )
+		fmt.Println( fmt.Sprintf("gold=%d:\t %.1f%%", gold, (found / total) * 100) )
 	}
 }
