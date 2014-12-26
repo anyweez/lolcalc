@@ -16,6 +16,7 @@ import (
 )
 
 var wg sync.WaitGroup
+
 var GOLD = flag.Int("gold", 500, "The amount of gold that the simulation is limited to spending.")
 var CORES = flag.Int("cores", 1, "The number of cores to use for the simulation.")
 var BENCHMARK = flag.Bool("benchmark", false, "Whether to make this a benchmark run or a full run.")
