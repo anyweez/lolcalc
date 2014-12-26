@@ -20,6 +20,7 @@ var wg sync.WaitGroup
 var GOLD = flag.Int("gold", 500, "The amount of gold that the simulation is limited to spending.")
 var CORES = flag.Int("cores", 1, "The number of cores to use for the simulation.")
 var BENCHMARK = flag.Bool("benchmark", false, "Whether to make this a benchmark run or a full run.")
+var DATA_LOCATION = flag.String("data", "data/", "The location in the filesystem where simulation data can be read from.")
 
 const INVENTORY_SIZE int = 6
 
@@ -28,7 +29,7 @@ const INVENTORY_SIZE int = 6
  */
 func loadItems() []structs.ChampionItem {
 	// Read the items from an external data file.
-	data, err := ioutil.ReadFile("data/items.json")
+	data, err := ioutil.ReadFile(*DATA_LOCATION + "/items.json")
 	
 	if err != nil {
 		log.Fatal("Couldn't find input item file.")
@@ -42,7 +43,7 @@ func loadItems() []structs.ChampionItem {
 
 func loadChamps() []structs.ChampionDefinition {
 	// Read the items from an external data file.
-	data, err := ioutil.ReadFile("data/champions.json")
+	data, err := ioutil.ReadFile(*DATA_LOCATION + "/champions.json")
 	
 	if err != nil {
 		log.Fatal("Couldn't find input champion file.")
