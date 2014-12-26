@@ -32,7 +32,7 @@ func main() {
 			
 			_, exists := lookup.Get( lookup.GetKey(sc) )
 			total += 1.0
-			if exists != nil {
+			if exists == nil {
 				found += 1.0
 			}
 		}
