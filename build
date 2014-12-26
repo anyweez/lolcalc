@@ -3,3 +3,8 @@
 go get -u github.com/go-redis/redis
 
 go build simulator
+
+# Also fetch the latest items.
+mkdir -p data
+python parseitems.py | python -m json.tool > data/items.json
+python parsechamps.py | python -m json.tool > data/champions.json
