@@ -3,6 +3,7 @@
 go get -u github.com/go-redis/redis
 
 go build simulator
+go build status
 
 # Also fetch the latest items.
 mkdir -p data
