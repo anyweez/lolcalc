@@ -4,11 +4,11 @@ import (
 	structs "structs"
 	fitness "fitness"
 	"encoding/json"
-	"io/ioutil"
 	"fmt"
 	"flag"
+	"lib/load"
+	"lib/lookup"
 	"log"
-	"lookup"
 	"math/big"
 	"runtime"
 	"sync"
@@ -23,37 +23,6 @@ var BENCHMARK = flag.Bool("benchmark", false, "Whether to make this a benchmark 
 var DATA_LOCATION = flag.String("data", "data/", "The location in the filesystem where simulation data can be read from.")
 
 const INVENTORY_SIZE int = 6
-
-/**
- * Read items from an external data file and generate a list of items.
- */
-func loadItems() []structs.ChampionItem {
-	// Read the items from an external data file.
-	data, err := ioutil.ReadFile(*DATA_LOCATION + "/items.json")
-	
-	if err != nil {
-		log.Fatal("Couldn't find input item file.")
-	}
-	
-	reader := structs.ChampionItemReader{}
-	json.Unmarshal(data, &reader)
-	
-	return reader.Items
-}
-
-func loadChamps() []structs.ChampionDefinition {
-	// Read the items from an external data file.
-	data, err := ioutil.ReadFile(*DATA_LOCATION + "/champions.json")
-	
-	if err != nil {
-		log.Fatal("Couldn't find input champion file.")
-	}
-	
-	reader := structs.PlayerChampionReader{}
-	json.Unmarshal(data, &reader)
-	
-	return reader.Champions
-}
 
 func compare(queue chan []int, initialCriteria structs.StageCriteria, items []structs.ChampionItem, output chan structs.PermutationResult) {
 	defer wg.Done()
@@ -186,8 +155,8 @@ func main() {
 	// Start time for benchmarking purposes
 	start := int64(time.Nanosecond) * time.Now().UnixNano() / int64(time.Millisecond)
 
-	loadedItems := loadItems()	
-	loadedChampDefs := loadChamps()
+	loadedItems := load.Items(*DATA_LOCATION + "/items.json")	
+	loadedChampDefs := load.Champs(*DATA_LOCATION + "/champions.json")
 
 	// Run the full simulation for each champion.
 	for _, champ := range loadedChampDefs {
